@@ -1,0 +1,1 @@
+module.exports = require('./Users/admin/Desktop/employee-tracking-system/netlify/functions/delete-user.js')

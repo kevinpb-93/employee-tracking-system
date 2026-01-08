@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Empleado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            min-height: 100vh;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .header-info h1 {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .header-info .date {
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: transparent;
+            color: #e0e0e0;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: #4a4a4a;
+            background: #1a1a1a;
+        }
+
+        .time-section {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .time-section h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .time-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .time-btn {
+            padding: 15px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .time-btn:hover:not(.marked) {
+            border-color: #4a4a4a;
+            background: #1a1a1a;
+        }
+
+        .time-btn.marked {
+            background: #1a3a1a;
+            border-color: #66ff66;
+            cursor: default;
+        }
+
+        .time-btn-label {
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+
+        .time-btn-time {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .tasks-section {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        .tasks-section h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .task-card {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .task-time {
+            font-size: 13px;
+            color: #b0b0b0;
+        }
+
+        .task-deadline {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            background: #2a2a2a;
+            color: #b0b0b0;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-status {
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        .task-status.pending {
+            background: #3a3a1a;
+            color: #ffff66;
+        }
+
+        .task-status.completed {
+            background: #1a3a1a;
+            color: #66ff66;
+        }
+
+        .task-status.late {
+            background: #3a1a1a;
+            color: #ff6666;
+        }
+
+        .mark-btn {
+            padding: 8px 16px;
+            background: #fff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .mark-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .mark-btn:disabled {
+            background: #2a2a2a;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .completions {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #b0b0b0;
+        }
+
+        .completions strong {
+            color: #e0e0e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #b0b0b0;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2a2a2a;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .time-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="dashboard" id="dashboard" style="display: none;">
+        <div class="header">
+            <div class="header-info">
+                <h1 id="userName">Bienvenido</h1>
+                <div class="date" id="currentDate"></div>
+            </div>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+
+        <div class="time-section">
+            <h2>Registro de Horario</h2>
+            <div class="time-buttons">
+                <div class="time-btn" id="entryBtn" onclick="markTime('entry')">
+                    <span class="time-btn-label">Entrada</span>
+                    <span class="time-btn-time" id="entryTime">--:--</span>
+                </div>
+                <div class="time-btn" id="middayBtn" onclick="markTime('midday')">
+                    <span class="time-btn-label">Medio Día</span>
+                    <span class="time-btn-time" id="middayTime">--:--</span>
+                </div>
+                <div class="time-btn" id="exitBtn" onclick="markTime('exit')">
+                    <span class="time-btn-label">Salida</span>
+                    <span class="time-btn-time" id="exitTime">--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tasks-section">
+            <h2>Tareas del Día</h2>
+            <div id="tasksList">
+                <div class="loading">Cargando tareas...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/.netlify/functions';
+        let currentUser = null;
+        let timeRecords = {};
+        let taskCompletions = {};
+        let dailyTasks = []; // Array para almacenar las tareas desde la BD
+
+        // Verificar sesión al cargar
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedUser = sessionStorage.getItem('currentUser');
+            
+            if (!savedUser) {
+                window.location.href = '/';
+                return;
+            }
+            
+            try {
+                currentUser = JSON.parse(savedUser);
+                
+                if (currentUser.role === 'admin') {
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('userName').textContent = `Bienvenido, ${currentUser.name}`;
+                
+                updateDate();
+                await loadDashboardData();
+            } catch (error) {
+                console.error('Error al cargar sesión:', error);
+                window.location.href = '/';
+            }
+        });
+
+        function logout() {
+            sessionStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', options);
+        }
+
+        async function loadDashboardData() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            try {
+                // Cargar registros de tiempo
+                const timeResponse = await fetch(`${API_BASE}/get-time-records?userId=${currentUser.id}&date=${today}`);
+                const timeData = await timeResponse.json();
+                
+                if (timeData.success && timeData.data.length > 0) {
+                    const record = timeData.data[0];
+                    timeRecords = record;
+                    
+                    if (record.entry_time) {
+                        document.getElementById('entryTime').textContent = record.entry_time;
+                        document.getElementById('entryBtn').classList.add('marked');
+                    }
+                    if (record.midday_time) {
+                        document.getElementById('middayTime').textContent = record.midday_time;
+                        document.getElementById('middayBtn').classList.add('marked');
+                    }
+                    if (record.exit_time) {
+                        document.getElementById('exitTime').textContent = record.exit_time;
+                        document.getElementById('exitBtn').classList.add('marked');
+                    }
+                }
+                
+                // Cargar tareas desde la base de datos
+                const tasksResponse = await fetch(`${API_BASE}/get-report?date=${today}`);
+                const tasksData = await tasksResponse.json();
+                
+                if (tasksData.success && tasksData.data.tasks) {
+                    dailyTasks = tasksData.data.tasks;
+                    console.log('Tareas cargadas:', dailyTasks);
+                }
+                
+                // Cargar completaciones de tareas
+                const completionsResponse = await fetch(`${API_BASE}/get-task-completions?userId=${currentUser.id}&date=${today}`);
+                const completionsData = await completionsResponse.json();
+                
+                if (completionsData.success) {
+                    taskCompletions = {};
+                    completionsData.data.forEach(completion => {
+                        taskCompletions[completion.task_id] = completion;
+                    });
+                }
+                
+                renderTasks();
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                document.getElementById('tasksList').innerHTML = '<div style="color:#ff6b6b; text-align:center;">Error al cargar datos. Recarga la página.</div>';
+            }
+        }
+
+        async function markTime(period) {
+            const btn = document.getElementById(`${period}Btn`);
+            if (btn.classList.contains('marked')) return;
+            
+            const now = new Date();
+            const time = now.toTimeString().slice(0, 5);
+            const date = now.toISOString().split('T')[0];
+            
+            try {
+                const response = await fetch(`${API_BASE}/mark-time`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        period: period,
+                        time: time,
+                        date: date
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById(`${period}Time`).textContent = time;
+                    btn.classList.add('marked');
+                    timeRecords[`${period}_time`] = time;
+                }
+            } catch (error) {
+                console.error('Error marcando horario:', error);
+                alert('Error al registrar. Intenta nuevamente.');
+            }
+        }
+
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (!dailyTasks || dailyTasks.length === 0) {
+                tasksList.innerHTML = '<div class="loading">No hay tareas disponibles</div>';
+                return;
+            }
+            
+            tasksList.innerHTML = '';
+            
+            dailyTasks.forEach(task => {
+                const completion = taskCompletions[task.id];
+                const completions = completion ? completion.completions : [];
+                const status = getTaskStatus(task, completion);
+                
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card';
+                
+                let completionInfo = '';
+                if (completions.length > 0) {
+                    completionInfo = `<div class="completions">
+                        <strong>Registros (${completions.length}):</strong><br>
+                        ${completions.map(time => `• ${time}`).join('<br>')}
+                    </div>`;
+                }
+                
+                taskCard.innerHTML = `
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.name}</div>
+                            <div class="task-time">Período: ${getPeriodName(task.period)}</div>
+                        </div>
+                        <div class="task-deadline">Límite: ${task.deadline}</div>
+                    </div>
+                    <div class="task-footer">
+                        <span class="task-status ${status.class}">${status.text}${completions.length > 0 ? ` (${completions.length}×)` : ''}</span>
+                        <button class="mark-btn" onclick="markTask(${task.id})">
+                            ${completions.length > 0 ? 'Marcar Nuevamente' : 'Marcar Completada'}
+                        </button>
+                    </div>
+                    ${completionInfo}
+                `;
+                
+                tasksList.appendChild(taskCard);
+            });
+        }
+
+        function getPeriodName(period) {
+            const names = {
+                'entry': 'Entrada',
+                'midday': 'Medio Día',
+                'exit': 'Salida'
+            };
+            return names[period] || period;
+        }
+
+        function getTaskStatus(task, completion) {
+            if (!completion || !completion.last_completed_at) {
+                return { class: 'pending', text: 'Pendiente' };
+            }
+            
+            const deadline = new Date();
+            const [deadlineHour, deadlineMin] = task.deadline.split(':');
+            deadline.setHours(deadlineHour, deadlineMin, 0);
+            
+            const [completedHour, completedMin] = completion.last_completed_at.split(':');
+            const completedTime = new Date();
+            completedTime.setHours(completedHour, completedMin, 0);
+            
+            if (completedTime <= deadline) {
+                return { class: 'completed', text: 'Completada a tiempo' };
+            } else {
+                return { class: 'late', text: 'Completada tarde' };
+            }
+        }
+
+        async function markTask(taskId) {
+            const now = new Date();
+            const time = now.toTimeString().slice(0, 5);
+            const date = now.toISOString().split('T')[0];
+            
+            try {
+                const response = await fetch(`${API_BASE}/mark-task`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        taskId: taskId,
+                        date: date,
+                        completedAt: time
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (!taskCompletions[taskId]) {
+                        taskCompletions[taskId] = {
+                            task_id: taskId,
+                            completions: [],
+                            last_completed_at: time
+                        };
+                    }
+                    taskCompletions[taskId].completions.push(time);
+                    taskCompletions[taskId].last_completed_at = time;
+                    
+                    renderTasks();
+                }
+            } catch (error) {
+                console.error('Error marcando tarea:', error);
+                alert('Error al marcar tarea. Intenta nuevamente.');
+            }
+        }
+    </script>
+</body>
+</html>

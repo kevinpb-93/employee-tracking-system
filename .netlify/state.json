@@ -1,0 +1,19 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Milagro",
+			"country": {
+				"code": "EC",
+				"name": "Ecuador"
+			},
+			"subdivision": {
+				"code": "G",
+				"name": "Guayas"
+			},
+			"timezone": "America/Guayaquil",
+			"latitude": -2.1296,
+			"longitude": -79.6017
+		},
+		"timestamp": 1767849870315
+	}
+}

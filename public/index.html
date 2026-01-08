@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Empleados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4a4a4a;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #fff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #e0e0e0;
+        }
+
+        .btn:disabled {
+            background: #2a2a2a;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .message {
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .error {
+            background: #3a1a1a;
+            color: #ff6b6b;
+        }
+
+        .success {
+            background: #1a3a1a;
+            color: #66ff66;
+        }
+
+        .info {
+            background: #1a2a3a;
+            color: #66aaff;
+        }
+
+        .demo-users {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .demo-users h3 {
+            font-size: 13px;
+            font-weight: 500;
+            color: #b0b0b0;
+            margin-bottom: 12px;
+        }
+
+        .user-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-badge:hover {
+            border-color: #4a4a4a;
+            background: #1a1a1a;
+        }
+
+        .user-badge.admin {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 10, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2a2a2a;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            .logo h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>Sistema de Empleados</h1>
+            <p>Ingresa tus credenciales</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label>Usuario</label>
+                <input type="text" id="username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn" id="loginBtn">Iniciar Sesión</button>
+            <div class="message error" id="errorMessage"></div>
+            <div class="message success" id="successMessage"></div>
+        </form>
+
+       
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        const API_BASE = '/.netlify/functions';
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            await performLogin(username, password);
+        });
+
+        // Quick login para badges de demo
+        async function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            await performLogin(username, password);
+        }
+
+        async function performLogin(username, password) {
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            // Reset messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Disable button
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Iniciando...';
+            loadingOverlay.classList.add('active');
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Guardar usuario en sesión
+                    sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+                    
+                    // Mostrar mensaje de éxito
+                    successMessage.textContent = `¡Bienvenido ${data.user.name}!`;
+                    successMessage.style.display = 'block';
+                    
+                    // Redirigir según el rol
+                    setTimeout(() => {
+                        if (data.user.role === 'admin') {
+                            window.location.href = '/admin.html';
+                        } else {
+                            window.location.href = '/empleado.html';
+                        }
+                    }, 800);
+                } else {
+                    throw new Error(data.error || 'Credenciales incorrectas');
+                }
+            } catch (error) {
+                console.error('Error en login:', error);
+                errorMessage.textContent = error.message || 'Error de conexión. Intenta nuevamente.';
+                errorMessage.style.display = 'block';
+                
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Iniciar Sesión';
+                loadingOverlay.classList.remove('active');
+            }
+        }
+
+        // Verificar si ya hay sesión activa
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = sessionStorage.getItem('currentUser');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                const successMessage = document.getElementById('successMessage');
+                
+                successMessage.textContent = 'Sesión activa, redirigiendo...';
+                successMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    if (user.role === 'admin') {
+                        window.location.href = '/admin.html';
+                    } else {
+                        window.location.href = '/empleado.html';
+                    }
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
