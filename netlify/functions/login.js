@@ -52,6 +52,7 @@ exports.handler = async (event, context) => {
         user: {
           id: user.id,
           username: user.username,
+          name: user.name,
           role: user.role
         }
       })
