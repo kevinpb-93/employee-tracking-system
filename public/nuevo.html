@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Móvil - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+
+        /* VISTA DESKTOP - La tabla normal */
+        .desktop-view {
+            display: block;
+        }
+
+        /* VISTA MÓVIL - Cards individuales */
+        .mobile-view {
+            display: none;
+            padding: 15px;
+            padding-bottom: 80px;
+        }
+
+        .mobile-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .mobile-header h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        /* Navegación entre tareas */
+        .task-navigation {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #1a1a1a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .nav-btn {
+            background: #4a9eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 45px;
+        }
+
+        .nav-btn:disabled {
+            background: #2a2a2a;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: scale(0.95);
+            background: #3a8eef;
+        }
+
+        .task-indicator {
+            flex: 1;
+            text-align: center;
+        }
+
+        .current-task-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #4a9eff;
+            margin-bottom: 4px;
+        }
+
+        .task-counter {
+            font-size: 12px;
+            color: #b0b0b0;
+        }
+
+        /* Card de empleado */
+        .employee-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .employee-number {
+            background: #2a2a2a;
+            color: #b0b0b0;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .task-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            flex: 1;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-badge.completed {
+            background: #1a3a1a;
+            color: #66ff66;
+            border: 1px solid #2a5a2a;
+        }
+
+        .status-badge.pending {
+            background: #2a2a2a;
+            color: #999;
+            border: 1px solid #3a3a3a;
+        }
+
+        .completion-times {
+            font-size: 11px;
+            margin-top: 6px;
+            color: #b0b0b0;
+            line-height: 1.4;
+        }
+
+        /* Resumen rápido */
+        .quick-summary {
+            background: #1a1a1a;
+            border: 2px solid #4a9eff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-title {
+            font-size: 13px;
+            color: #4a9eff;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: #0a0a0a;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-value.completed {
+            color: #66ff66;
+        }
+
+        .stat-value.pending {
+            color: #999;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #b0b0b0;
+            text-transform: uppercase;
+        }
+
+        /* Botón para volver a la tabla */
+        .view-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4a9eff;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .view-toggle:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .desktop-view {
+                display: none !important;
+            }
+
+            .mobile-view {
+                display: block !important;
+            }
+        }
+
+        /* Animación de carga */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #b0b0b0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #2a2a2a;
+            border-top-color: #4a9eff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- VISTA DESKTOP (tabla normal) -->
+    <div class="desktop-view" id="desktopView">
+        <div style="padding: 20px; text-align: center; color: #b0b0b0;">
+            <h2 style="margin-bottom: 10px;">Vista Desktop</h2>
+            <p>Aquí va tu tabla normal de tareas completadas</p>
+            <p style="font-size: 12px; margin-top: 10px;">Esta vista se muestra en pantallas grandes</p>
+        </div>
+    </div>
+
+    <!-- VISTA MÓVIL (cards por tarea) -->
+    <div class="mobile-view" id="mobileView">
+        <div class="mobile-header">
+            <h2>📋 Tareas Completadas</h2>
+        </div>
+
+        <!-- Navegación entre tareas -->
+        <div class="task-navigation">
+            <button class="nav-btn" id="prevTask">←</button>
+            <div class="task-indicator">
+                <div class="current-task-name" id="currentTaskName">Limpiar ventanas</div>
+                <div class="task-counter" id="taskCounter">Tarea 1 de 4</div>
+            </div>
+            <button class="nav-btn" id="nextTask">→</button>
+        </div>
+
+        <!-- Resumen rápido -->
+        <div class="quick-summary">
+            <div class="summary-title">Resumen de esta tarea</div>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-value completed" id="completedCount">3</div>
+                    <div class="stat-label">Completadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value pending" id="pendingCount">2</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de empleados -->
+        <div id="employeeList">
+            <!-- Ejemplo de cards -->
+            <div class="employee-card">
+                <div class="employee-name">
+                    <span>Juan Pérez</span>
+                    <span class="employee-number">#1</span>
+                </div>
+                <div class="task-status">
+                    <div class="status-badge completed">
+                        ✓ Completada
+                        <div class="completion-times">✓ 08:15, ✓ 14:30</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="employee-card">
+                <div class="employee-name">
+                    <span>María García</span>
+                    <span class="employee-number">#2</span>
+                </div>
+                <div class="task-status">
+                    <div class="status-badge pending">
+                        — Pendiente
+                    </div>
+                </div>
+            </div>
+
+            <div class="employee-card">
+                <div class="employee-name">
+                    <span>Carlos Rodríguez</span>
+                    <span class="employee-number">#3</span>
+                </div>
+                <div class="task-status">
+                    <div class="status-badge completed">
+                        ✓ Completada
+                        <div class="completion-times">✓ 09:00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo (reemplaza con tus datos reales)
+        const mockData = {
+            tasks: [
+                { id: 1, name: 'Limpiar ventanas del edificio' },
+                { id: 2, name: 'Barrer y trapear oficinas' },
+                { id: 3, name: 'Revisar inventario' },
+                { id: 4, name: 'Organizar documentos' }
+            ],
+            users: [
+                { id: 1, name: 'Juan Pérez' },
+                { id: 2, name: 'María García' },
+                { id: 3, name: 'Carlos Rodríguez' },
+                { id: 4, name: 'Ana Martínez' },
+                { id: 5, name: 'Luis Torres' }
+            ],
+            completions: {
+                1: { // Tarea 1
+                    1: ['08:15', '14:30'], // Usuario 1
+                    3: ['09:00'] // Usuario 3
+                },
+                2: { // Tarea 2
+                    1: ['08:20'],
+                    2: ['08:45'],
+                    4: ['09:15']
+                },
+                3: { // Tarea 3
+                    2: ['10:30'],
+                    5: ['11:00']
+                },
+                4: { // Tarea 4
+                    1: ['16:00'],
+                    3: ['16:15'],
+                    4: ['16:30'],
+                    5: ['16:45']
+                }
+            }
+        };
+
+        let currentTaskIndex = 0;
+
+        function renderMobileView() {
+            const task = mockData.tasks[currentTaskIndex];
+            const taskCompletions = mockData.completions[task.id] || {};
+
+            // Actualizar nombre de tarea
+            document.getElementById('currentTaskName').textContent = task.name;
+            document.getElementById('taskCounter').textContent = 
+                `Tarea ${currentTaskIndex + 1} de ${mockData.tasks.length}`;
+
+            // Calcular estadísticas
+            let completed = 0;
+            let pending = 0;
+
+            mockData.users.forEach(user => {
+                if (taskCompletions[user.id]) {
+                    completed++;
+                } else {
+                    pending++;
+                }
+            });
+
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('pendingCount').textContent = pending;
+
+            // Renderizar lista de empleados
+            const employeeList = document.getElementById('employeeList');
+            employeeList.innerHTML = '';
+
+            mockData.users.forEach((user, index) => {
+                const completions = taskCompletions[user.id];
+                const isCompleted = !!completions;
+
+                const card = document.createElement('div');
+                card.className = 'employee-card';
+
+                let statusHtml = '';
+                if (isCompleted) {
+                    const times = completions.map(t => `✓ ${t}`).join(', ');
+                    statusHtml = `
+                        <div class="status-badge completed">
+                            ✓ Completada
+                            <div class="completion-times">${times}</div>
+                        </div>
+                    `;
+                } else {
+                    statusHtml = `
+                        <div class="status-badge pending">
+                            — Pendiente
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="employee-name">
+                        <span>${user.name}</span>
+                        <span class="employee-number">#${index + 1}</span>
+                    </div>
+                    <div class="task-status">
+                        ${statusHtml}
+                    </div>
+                `;
+
+                employeeList.appendChild(card);
+            });
+
+            // Actualizar botones
+            document.getElementById('prevTask').disabled = currentTaskIndex === 0;
+            document.getElementById('nextTask').disabled = 
+                currentTaskIndex === mockData.tasks.length - 1;
+        }
+
+        // Navegación
+        document.getElementById('prevTask').addEventListener('click', () => {
+            if (currentTaskIndex > 0) {
+                currentTaskIndex--;
+                renderMobileView();
+            }
+        });
+
+        document.getElementById('nextTask').addEventListener('click', () => {
+            if (currentTaskIndex < mockData.tasks.length - 1) {
+                currentTaskIndex++;
+                renderMobileView();
+            }
+        });
+
+        // Soporte para swipe
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.getElementById('employeeList').addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.getElementById('employeeList').addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0 && currentTaskIndex < mockData.tasks.length - 1) {
+                    // Swipe left - siguiente
+                    currentTaskIndex++;
+                    renderMobileView();
+                } else if (diff < 0 && currentTaskIndex > 0) {
+                    // Swipe right - anterior
+                    currentTaskIndex--;
+                    renderMobileView();
+                }
+            }
+        }
+
+        // Inicializar
+        renderMobileView();
+    </script>
+</body>
+</html>
