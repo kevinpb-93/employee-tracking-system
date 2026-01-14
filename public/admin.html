@@ -72,7 +72,18 @@ body {
 
 .controls input:focus {
     outline: none;
-    border-color: #4a4a4a;
+    border-color: #fffcfc;
+}
+
+/* Estilo del icono del calendario */
+#dateFilter {
+    accent-color: #4a9eff;
+    caret-color: #4a9eff;
+}
+
+#dateFilter::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    cursor: pointer;
 }
 
 .download-btn {
@@ -808,6 +819,10 @@ td {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 180px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .task-counter {
