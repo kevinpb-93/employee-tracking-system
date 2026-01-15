@@ -1,11 +1,18 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+// Fallback: Si no hay SERVICE_KEY, intenta con ANON_KEY
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('CRITICAL: Faltan variables de entorno SUPABASE_URL o Keys');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 exports.handler = async (event) => {
+  console.log('Function get-admin-conversations invoked');
+
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
