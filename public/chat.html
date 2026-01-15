@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat con Administrador</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #2a2a2a;
+            background: #1a1a1a;
+        }
+
+        .header-info h1 {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .header-info .subtitle {
+            font-size: 13px;
+            color: #b0b0b0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background: transparent;
+            color: #e0e0e0;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: #4a4a4a;
+            background: #2a2a2a;
+        }
+
+        .btn-primary {
+            background: #4a9eff;
+            border-color: #4a9eff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #3a8eef;
+            border-color: #3a8eef;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #0a0a0a;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #4a9eff;
+            border-radius: 4px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .message.admin .message-content {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px 12px 12px 4px;
+        }
+
+        .message.user .message-content {
+            background: #4a9eff;
+            color: #fff;
+            border-radius: 12px 12px 4px 12px;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+
+        .message.admin .message-header {
+            color: #4a9eff;
+        }
+
+        .message.user .message-header {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .message-text {
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .message-media {
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        .message-media img,
+        .message-media video {
+            max-width: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .task-reference {
+            background: #2a2a2a;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 12px;
+            border-left: 3px solid #4a9eff;
+        }
+
+        .message.user .task-reference {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: #fff;
+        }
+
+        .reply-to {
+            background: #2a2a2a;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            border-left: 2px solid #4a9eff;
+            opacity: 0.8;
+        }
+
+        .message.user .reply-to {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: #fff;
+        }
+
+        .reply-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message-content:hover .reply-btn {
+            opacity: 0.6;
+        }
+
+        .reply-btn:hover {
+            opacity: 1 !important;
+        }
+
+        .input-container {
+            border-top: 1px solid #2a2a2a;
+            padding: 20px;
+            background: #1a1a1a;
+        }
+
+        .reply-preview {
+            background: #2a2a2a;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .reply-preview.active {
+            display: flex;
+        }
+
+        .reply-preview-text {
+            flex: 1;
+            color: #b0b0b0;
+        }
+
+        .cancel-reply {
+            background: transparent;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 10px;
+        }
+
+        .task-selector {
+            background: #2a2a2a;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .task-selector.active {
+            display: block;
+        }
+
+        .task-selector select {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 12px 45px 12px 12px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            resize: none;
+            min-height: 45px;
+            max-height: 120px;
+            font-family: inherit;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+
+        .attachment-btn,
+        .task-btn {
+            background: transparent;
+            border: none;
+            color: #b0b0b0;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 10px;
+            transition: color 0.2s;
+        }
+
+        .attachment-btn:hover,
+        .task-btn:hover {
+            color: #4a9eff;
+        }
+
+        .send-btn {
+            padding: 12px 24px;
+            background: #4a9eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #3a8eef;
+        }
+
+        .send-btn:disabled {
+            background: #2a2a2a;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-subtext {
+            font-size: 13px;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 15px;
+            }
+
+            .header-info h1 {
+                font-size: 18px;
+            }
+
+            .messages-container {
+                padding: 15px;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .input-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-info">
+                <h1>💬 Chat con Administrador</h1>
+                <div class="subtitle" id="userSubtitle">Cargando...</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn" onclick="goBack()">← Volver</button>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <div class="loading-indicator">Cargando mensajes...</div>
+        </div>
+
+        <div class="input-container">
+            <div class="reply-preview" id="replyPreview">
+                <div class="reply-preview-text" id="replyPreviewText"></div>
+                <button class="cancel-reply" onclick="cancelReply()">✕</button>
+            </div>
+
+            <div class="task-selector" id="taskSelector">
+                <select id="taskSelect">
+                    <option value="">Selecciona una tarea (opcional)</option>
+                </select>
+            </div>
+
+            <div class="input-area">
+                <button class="task-btn" onclick="toggleTaskSelector()" title="Adjuntar tarea">
+                    📋
+                </button>
+
+                <button class="attachment-btn" onclick="document.getElementById('fileInput').click()"
+                    title="Adjuntar archivo">
+                    📎
+                </button>
+
+                <input type="file" id="fileInput" class="file-input" accept="image/*,video/*"
+                    onchange="handleFileSelect(event)">
+
+                <div class="input-wrapper">
+                    <textarea id="messageInput" class="message-input" placeholder="Escribe un mensaje..." rows="1"
+                        onkeydown="handleKeyPress(event)" oninput="autoResize(this)"></textarea>
+                </div>
+
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                    Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/.netlify/functions';
+        let currentUser = null;
+        let conversationId = null;
+        let messages = [];
+        let replyToMessage = null;
+        let selectedFile = null;
+        let tasks = [];
+        let pollingInterval = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedUser = sessionStorage.getItem('currentUser');
+
+            if (!savedUser) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('userSubtitle').textContent = `Conectado como ${currentUser.name}`;
+
+                await loadTasks();
+                await loadConversation();
+                startPolling();
+            } catch (error) {
+                console.error('Error al cargar:', error);
+                showError('Error al cargar el chat');
+            }
+        });
+
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/get-report?date=${new Date().toISOString().split('T')[0]}`);
+                const data = await response.json();
+
+                if (data.success && data.data.tasks) {
+                    tasks = data.data.tasks;
+
+                    const select = document.getElementById('taskSelect');
+                    select.innerHTML = '<option value="">Selecciona una tarea (opcional)</option>';
+
+                    tasks.forEach(task => {
+                        const option = document.createElement('option');
+                        option.value = task.id;
+                        option.textContent = task.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando tareas:', error);
+            }
+        }
+
+        async function loadConversation() {
+            try {
+                // ✅ Primero crear/obtener la conversación
+                const convResponse = await fetch(`${API_BASE}/create-conversation`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id })
+                });
+
+                const convData = await convResponse.json();
+
+                if (!convData.success) {
+                    throw new Error(convData.error || 'Error al obtener conversación');
+                }
+
+                conversationId = convData.data.conversation.id;
+
+                // ✅ Ahora obtener los mensajes
+                const response = await fetch(`${API_BASE}/get-chat-messages?conversationId=${conversationId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Error al cargar mensajes');
+                }
+
+                messages = data.data.messages || [];
+                renderMessages();
+                scrollToBottom();
+
+                // ✅ Marcar mensajes como leídos
+                await markMessagesAsRead();
+
+            } catch (error) {
+                console.error('Error cargando conversación:', error);
+                showError('Error al cargar mensajes: ' + error.message);
+            }
+        }
+
+        async function markMessagesAsRead() {
+            try {
+                if (!conversationId) return;
+
+                await fetch(`${API_BASE}/mark-messages-read`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        conversationId: conversationId,
+                        userType: 'user' // El empleado marca como leídos los mensajes del admin
+                    })
+                });
+            } catch (error) {
+                console.error('Error marcando mensajes como leídos:', error);
+            }
+        }
+
+        // Variable para trackear el último mensaje renderizado
+        let lastRenderedMessageId = null;
+
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+
+            if (messages.length === 0) {
+                container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <div class="empty-state-text">No hay mensajes aún</div>
+                <div class="empty-state-subtext">Envía un mensaje para iniciar la conversación</div>
+            </div>
+        `;
+                lastRenderedMessageId = null;
+                return;
+            }
+
+            // Si no hay mensajes renderizados, limpiar y renderizar todos
+            if (!lastRenderedMessageId || container.children.length === 0) {
+                container.innerHTML = '';
+                messages.forEach(message => {
+                    const messageEl = createMessageElement(message);
+                    container.appendChild(messageEl);
+                });
+                if (messages.length > 0) {
+                    lastRenderedMessageId = messages[messages.length - 1].id;
+                }
+                return;
+            }
+
+            // Solo renderizar mensajes nuevos
+            const lastIndex = messages.findIndex(m => m.id === lastRenderedMessageId);
+            if (lastIndex !== -1 && lastIndex < messages.length - 1) {
+                for (let i = lastIndex + 1; i < messages.length; i++) {
+                    const messageEl = createMessageElement(messages[i]);
+                    container.appendChild(messageEl);
+                }
+                lastRenderedMessageId = messages[messages.length - 1].id;
+            }
+        }
+
+        function createMessageElement(message) {
+            const div = document.createElement('div');
+            div.className = `message ${message.sender_type}`;
+
+            const isUser = message.sender_type === 'user';
+            const senderName = isUser ? 'Tú' : 'Administrador';
+
+            let content = `
+        <div class="message-content">
+            <div class="message-header">
+                <strong>${senderName}</strong>
+                <span class="message-time">${formatTime(message.created_at)}</span>
+            </div>
+    `;
+
+            // Mensaje de respuesta
+            if (message.reply_to) {
+                const replyContent = message.reply_to.content || '📎 Archivo adjunto';
+                content += `
+            <div class="reply-to">
+                <strong>${message.reply_to.sender_type === 'user' ? 'Tú' : 'Admin'}:</strong>
+                ${escapeHtml(replyContent)}
+            </div>
+        `;
+            }
+
+            // Contenido del mensaje
+            if (message.content) {
+                content += `<div class="message-text">${escapeHtml(message.content)}</div>`;
+            }
+
+            // Media
+            if (message.media_url) {
+                if (message.message_type === 'image') {
+                    content += `<div class="message-media"><img src="${message.media_url}" alt="Imagen"></div>`;
+                } else if (message.message_type === 'video') {
+                    content += `<div class="message-media"><video src="${message.media_url}" controls></video></div>`;
+                }
+            }
+
+            // Referencia a tarea
+            if (message.task) {
+                content += `<div class="task-reference">📋 ${escapeHtml(message.task.name)}</div>`;
+            }
+
+            // Botón de responder
+            const replyContent = message.content || '📎 Archivo';
+            content += `<button class="reply-btn" onclick='setReplyTo("${message.id}", ${JSON.stringify(escapeHtml(replyContent))})'>↩️</button>`;
+            content += `</div>`;
+
+            div.innerHTML = content;
+            return div;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            const taskId = document.getElementById('taskSelect').value || null;
+
+            if (!content && !selectedFile) {
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Enviando...';
+
+            try {
+                if (selectedFile) {
+                    await sendMediaMessage(content, taskId);
+                } else {
+                    await sendTextMessage(content, taskId);
+                }
+
+                input.value = '';
+                input.style.height = 'auto';
+                document.getElementById('taskSelect').value = '';
+                document.getElementById('taskSelector').classList.remove('active');
+                cancelReply();
+
+                // Ya no recargar conversación - mensajes se agregan directamente
+            } catch (error) {
+                console.error('Error enviando mensaje:', error);
+                alert('Error al enviar el mensaje: ' + error.message);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Enviar';
+            }
+        }
+
+        async function sendTextMessage(content, taskId) {
+            // ✅ Verificar que tenemos conversationId
+            if (!conversationId) {
+                throw new Error('No hay conversación activa');
+            }
+
+            const response = await fetch(`${API_BASE}/send-chat-message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    conversationId: conversationId,
+                    senderId: currentUser.id,
+                    senderType: 'user',
+                    content: content,
+                    messageType: 'text',
+                    taskId: taskId,
+                    replyToMessageId: replyToMessage
+                })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Error al enviar mensaje');
+            }
+
+            // Agregar mensaje directamente sin recargar
+            if (data.data && data.data.message) {
+                messages.push(data.data.message);
+                renderMessages();
+                scrollToBottom();
+            }
+
+            return data;
+        }
+
+        async function sendMediaMessage(content, taskId) {
+            // ✅ Verificar que tenemos conversationId
+            if (!conversationId) {
+                throw new Error('No hay conversación activa');
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('conversationId', conversationId);
+            formData.append('senderId', currentUser.id);
+            formData.append('senderType', 'user');
+
+            if (content) {
+                formData.append('content', content);
+            }
+            if (taskId) {
+                formData.append('taskId', taskId);
+            }
+            if (replyToMessage) {
+                formData.append('replyToMessageId', replyToMessage);
+            }
+
+            const response = await fetch(`${API_BASE}/upload-media`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Error al subir archivo');
+            }
+
+            selectedFile = null;
+
+            // Limpiar preview del archivo
+            const input = document.getElementById('messageInput');
+            input.placeholder = 'Escribe un mensaje...';
+
+            // Agregar mensaje directamente sin recargar
+            if (data.data && data.data.message) {
+                messages.push(data.data.message);
+                renderMessages();
+                scrollToBottom();
+            }
+
+            return data;
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const maxSize = 10 * 1024 * 1024; // 10MB
+
+            if (file.size > maxSize) {
+                alert('El archivo es demasiado grande. Máximo 10MB');
+                event.target.value = '';
+                return;
+            }
+
+            selectedFile = file;
+
+            const input = document.getElementById('messageInput');
+            input.placeholder = `📎 ${file.name} - Escribe un mensaje (opcional)`;
+        }
+
+        function setReplyTo(messageId, content) {
+            replyToMessage = messageId;
+
+            const preview = document.getElementById('replyPreview');
+            const previewText = document.getElementById('replyPreviewText');
+
+            const shortContent = content.length > 50 ? content.substring(0, 50) + '...' : content;
+            previewText.textContent = `Respondiendo a: ${shortContent}`;
+            preview.classList.add('active');
+
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            replyToMessage = null;
+            document.getElementById('replyPreview').classList.remove('active');
+        }
+
+        function toggleTaskSelector() {
+            const selector = document.getElementById('taskSelector');
+            selector.classList.toggle('active');
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+
+            // Menos de 1 minuto
+            if (diff < 60000) return 'Ahora';
+
+            // Menos de 1 hora
+            if (diff < 3600000) {
+                const minutes = Math.floor(diff / 60000);
+                return `${minutes} min`;
+            }
+
+            // Hoy
+            if (date.toDateString() === now.toDateString()) {
+                return date.toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            // Ayer
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return 'Ayer';
+            }
+
+            // Esta semana
+            if (diff < 604800000) { // 7 días
+                return date.toLocaleDateString('es-ES', { weekday: 'short' });
+            }
+
+            // Fecha completa
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: 'short'
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = `
+        <div style="text-align:center; color:#ff6b6b; padding:20px;">
+            ${message}
+        </div>
+    `;
+        }
+
+        function goBack() {
+            window.location.href = '/empleado.html';
+        }
+
+        // POLLING INTELIGENTE - Actualiza en tiempo real SIN parpadeo
+        function startPolling() {
+            // Limpiar polling anterior si existe
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+
+            // Actualizar cada 3 segundos
+            pollingInterval = setInterval(async () => {
+                try {
+                    if (!conversationId) return;
+
+                    // Cargar mensajes nuevos sin mostrar loading
+                    const response = await fetch(`${API_BASE}/get-chat-messages?conversationId=${conversationId}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const newMessages = data.data.messages || [];
+
+                        // Solo actualizar si hay mensajes nuevos
+                        if (newMessages.length > messages.length) {
+                            messages = newMessages;
+                            renderMessages(); // Usa renderizado inteligente - solo agrega nuevos
+                            scrollToBottom();
+
+                            // Marcar como leídos
+                            await markMessagesAsRead();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error en polling:', error);
+                }
+            }, 3000); // 3 segundos para mejor experiencia
+        }
+
+        // Limpiar polling al salir
+        window.addEventListener('beforeunload', () => {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+        });
+    </script>
+</body>
+
+</html>

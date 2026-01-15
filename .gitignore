@@ -1,3 +1,6 @@
 node_modules/ 
 .env 
-.netlify/functions-serve/ 
+.netlify/
+.DS_Store
+dist/
+tmp/ 

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Data</title>
+</head>
+<body>
+    <h1>Test de Datos</h1>
+    <button onclick="testMarkTask()">Test Mark Task</button>
+    <button onclick="testGetEvidence()">Test Get Evidence</button>
+    <div id="result"></div>
+    
+    <script>
+        const API_BASE = '/.netlify/functions';
+        
+        async function testMarkTask() {
+            const testData = {
+                userId: 'c3166d10-4f88-446f-b91a-d6722ced12d7', // Tu UUID
+                taskId: null, // Necesitamos obtener un taskId real
+                date: '2026-01-14',
+                completedAt: '10:30'
+            };
+            
+            // Primero obtener tareas
+            const tasksRes = await fetch(`${API_BASE}/get-report?date=${testData.date}`);
+            const tasksData = await tasksRes.json();
+            
+            if (tasksData.success && tasksData.data.tasks.length > 0) {
+                testData.taskId = tasksData.data.tasks[0].id;
+                
+                const res = await fetch(`${API_BASE}/mark-task`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await res.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>Resultado:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <h3>Datos enviados:</h3>
+                    <pre>${JSON.stringify(testData, null, 2)}</pre>
+                `;
+            }
+        }
+        
+        async function testGetEvidence() {
+            const testData = {
+                userId: 'c3166d10-4f88-446f-b91a-d6722ced12d7',
+                taskId: null,
+                date: '2026-01-14'
+            };
+            
+            const tasksRes = await fetch(`${API_BASE}/get-report?date=${testData.date}`);
+            const tasksData = await tasksRes.json();
+            
+            if (tasksData.success && tasksData.data.tasks.length > 0) {
+                testData.taskId = tasksData.data.tasks[0].id;
+                
+                const res = await fetch(
+                    `${API_BASE}/get-task-evidence?userId=${testData.userId}&taskId=${testData.taskId}&date=${testData.date}`
+                );
+                
+                const data = await res.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>Evidencias:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
